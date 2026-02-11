@@ -1,21 +1,23 @@
 import JSONRenderer from "@/components/renderer/JSONRenderer";
 import { UIComponentNode } from "@/types/ui";
-
-const testTree: UIComponentNode = {
-  id: "root",
-  type: "Card",
-  props: { title: "Dashboard" },
-  children: [
-    {
-      id: "btn1",
-      type: "Button",
-      props: { label: "Click Me" },
-    },
-  ],
-};
-
+import { jsonToJsx } from "@/lib/jsonToJsx";
 
 export default function HomePage() {
+  const testTree: UIComponentNode = {
+    id: "root",
+    type: "Card",
+    props: { title: "Dashboard" },
+    children: [
+      {
+        id: "btn1",
+        type: "Button",
+        props: { label: "Click Me" },
+      },
+    ],
+  };
+  
+  const jsxCode = jsonToJsx(testTree);
+
   return (
     <div className="app-container">
       <div className="panel left-panel">
@@ -36,7 +38,7 @@ export default function HomePage() {
       <div className="panel right-panel">
         <h2>Code</h2>
         <div className="code-container">
-          JSX output will appear here.
+          <pre>{jsxCode}</pre>
         </div>
 
         <h2>Versions</h2>
