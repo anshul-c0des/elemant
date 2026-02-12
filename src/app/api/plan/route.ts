@@ -7,7 +7,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: Request) {
   try {
-    const { userInput } = await req.json();
+    const { userInput, currentTree } = await req.json();
 
     const model = genAI.getGenerativeModel({
       model: "gemini-3-flash-preview",
@@ -15,7 +15,8 @@ export async function POST(req: Request) {
 
     const result = await model.generateContent([
       getPlannerPrompt(AllowedComponents),
-      `User request: ${userInput}`,
+      `Current UI Tree (with IDs): ${JSON.stringify(currentTree)}`,
+      `User request: ${userInput}`
     ]);
 
     const text = result.response.text();

@@ -29,5 +29,9 @@ Rules:
 - Never output components not in allowed list.
 - Never invent new components.
 - Never output JSX.
+When editing:
+- You MUST use targetId values that exist in the current tree.
+- Never invent IDs.
+- If unsure, do not guess.
 `
 }

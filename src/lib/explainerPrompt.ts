@@ -5,7 +5,7 @@ Explain briefly why the UI structure was generated.
 
 Rules:
 - Be concise.
-- 3-5 sentences maximum.
+- 2-4 sentences maximum.
 - No markdown.
 - No JSON.
 - No code.
