@@ -17,19 +17,23 @@ export const versionStore: VersionState = {
   currentVersionId: null,
 };
 
-export function addVersion(tree: UIComponentNode) {
-  const id = crypto.randomUUID();
-
-  versionStore.versions.push({
-    id,
-    tree: structuredClone(tree),
-    timestamp: Date.now(),
-  });
-
-  versionStore.currentVersionId = id;
-
-  return id;
-}
+export function addVersion(
+    tree: UIComponentNode,
+    explanation?: string
+  ) {
+    const id = crypto.randomUUID();
+  
+    versionStore.versions.push({
+      id,
+      tree: structuredClone(tree),
+      explanation,
+      timestamp: Date.now(),
+    });
+  
+    versionStore.currentVersionId = id;
+  
+    return id;
+  }  
 
 export function getCurrentTree(): UIComponentNode | null {
   const current = versionStore.versions.find(

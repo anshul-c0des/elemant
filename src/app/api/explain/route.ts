@@ -1,20 +1,12 @@
-import { applyPlan } from "@/lib/patchEngine";
-import {
-  addVersion,
-  getCurrentTree,
-} from "@/lib/versionStore";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { explainerSystemPrompt } from "@/lib/explainerPrompt";
 import { NextResponse } from "next/server";
+import { explainerSystemPrompt } from "@/lib/explainerPrompt";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: Request) {
   try {
-    const { plan, userInput } = await req.json();
-
-    const currentTree = getCurrentTree();
-    const updatedTree = applyPlan(currentTree, plan);
+    const { userInput, tree } = await req.json();
 
     const model = genAI.getGenerativeModel({
       model: "gemini-3-flash-preview",
@@ -23,22 +15,16 @@ export async function POST(req: Request) {
     const result = await model.generateContent([
       explainerSystemPrompt,
       `User request: ${userInput}`,
-      `Generated UI Tree: ${JSON.stringify(updatedTree)}`,
+      `Generated UI Tree: ${JSON.stringify(tree)}`,
     ]);
 
     const explanation = result.response.text().trim();
 
-    const versionId = addVersion(updatedTree, explanation);
-
-    return NextResponse.json({
-      versionId,
-      tree: updatedTree,
-      explanation,
-    });
+    return NextResponse.json({ explanation });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "Generation failed" },
+      { error: "Explanation failed" },
       { status: 500 }
     );
   }
