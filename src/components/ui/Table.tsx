@@ -3,8 +3,9 @@ interface TableProps {
   }
   
   export default function Table({
-    columns = ["Column 1", "Column 2"],
+    columns
   }: TableProps) {
+    const safeColumns = columns && columns.length > 0 ? columns : ["Column 1", "Column 2"];
     return (
       <table
         style={{
@@ -15,7 +16,7 @@ interface TableProps {
       >
         <thead>
           <tr>
-            {columns.map((col, i) => (
+            {safeColumns.map((col, i) => (
               <th
                 key={i}
                 style={{
@@ -31,7 +32,7 @@ interface TableProps {
         </thead>
         <tbody>
           <tr>
-            {columns.map((_, i) => (
+            {safeColumns.map((_, i) => (
               <td
                 key={i}
                 style={{

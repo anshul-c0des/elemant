@@ -7,10 +7,9 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: Request) {
   try {
-    const { userInput } = await req.json();
-    const tree = getCurrentTree();
+    const { userInput, prevTree, currentTree } = await req.json();
 
-    if (!tree) {
+    if (!currentTree) {
       return NextResponse.json({ error: "No UI tree available to explain" }, { status: 400 });
     }
 
@@ -18,22 +17,22 @@ export async function POST(req: Request) {
       model: "gemini-3-flash-preview",
     });
 
-    const result = await model.generateContent([
+    const messages = [
       explainerSystemPrompt,
       `User request: ${userInput || ""}`,
-      `Generated UI Tree: ${JSON.stringify(tree)}`,
-    ]);
+      `Previous UI Tree: ${JSON.stringify(prevTree)}`,
+      `Current UI Tree: ${JSON.stringify(currentTree)}`
+    ];
+
+    const result = await model.generateContent(messages);
 
     const explanation = result.response.text().trim();
 
-    addVersion(tree, explanation);
+    addVersion(currentTree, explanation);
 
     return NextResponse.json({ explanation });
   } catch (error) {
     console.error(error);
-    return NextResponse.json(
-      { error: "Explanation failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Explanation failed" }, { status: 500 });
   }
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import JSONRenderer from "@/components/renderer/JSONRenderer";
 import { UIComponentNode } from "@/types/ui";
 import { jsonToJsx, jsxToJson } from "@/lib/jsonJsxParser";
-
+import { addVersion, versionStore } from "@/lib/versionStore";
 
 const testAllComponentsTree: UIComponentNode = {   // mock components - local testing
   id: "root",
@@ -98,6 +98,8 @@ export default function HomePage() {
   const [versions, setVersions] = useState<any[]>([]);
   const [currentVersionId, setCurrentVersionId] = useState<string | null>(null);
   const [code, setCode] = useState(tree ? jsonToJsx(tree) : "");
+  const [error, setError] = useState("");
+
 
 //   let updatedTree = applyPlan(testAllComponentsTree, addPlan);   // test incremental patching
 // console.log("After Add:", updatedTree);
@@ -114,15 +116,25 @@ useEffect(() => {
   }
 }, [tree]);
   
-const handleApply = () => {
+const handleApply = async () => {
+  if (!code.trim()) return;
+
   try {
-    const newTree = jsxToJson(code);
-    setTree(newTree);
-  } catch (err) {
-    console.error(err);
-    alert("Failed to parse JSX"); 
+    const updatedTree = jsxToJson(code);
+
+    setTree(updatedTree);
+
+    const newVersionId = addVersion(updatedTree, "Manual edit");
+    setCurrentVersionId(newVersionId);
+    setVersions([...versionStore.versions]);
+
+    setError("");
+  } catch (err: any) {
+    console.error("Failed to apply code:", err);
+    setError(err.message || "Invalid JSX code");
   }
 };
+
 
   const handleSubmit = async () => {
     if (!userInput.trim()) return;
@@ -156,12 +168,15 @@ const handleApply = () => {
       if (data.tree) {
         setTree(data.tree);
         setExplanation(data.explanation || "");
+
+        // Create a new version automatically
+        const newVersionId = addVersion(data.tree, data.explanation || null);
+        setCurrentVersionId(newVersionId);
+
+        setVersions([...versionStore.versions]);
+
+        setExplanation(data.explanation || "");      
       }
-      const versionsRes = await fetch("/api/versions");
-      const versionsData = await versionsRes.json();
-      
-      setVersions(versionsData.versions);
-      setCurrentVersionId(versionsData.currentVersionId);
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -169,40 +184,32 @@ const handleApply = () => {
     }
   };
 
-  const handleRollback = async (versionId: string) => {
-    const res = await fetch("/api/rollback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ versionId }),
-    });
-  
-    const data = await res.json();
-  
-    if (data.tree) {
-      setTree(data.tree);
-      setCurrentVersionId(versionId);
-  
-      const versionsRes = await fetch("/api/versions");
-      const versionsData = await versionsRes.json();
-  
-      const selected = versionsData.versions.find(
-        (v: any) => v.id === versionId
-      );
-  
-      setExplanation(selected?.explanation || "");
+  const handleRollback = (versionId: string) => {
+    const version = versionStore.versions.find(v => v.id === versionId);
+    if (!version) {
+      setExplanation("Cannot rollback: version not found.");
+      return;
     }
+    versionStore.currentVersionId = versionId;
+    setTree(structuredClone(version.tree));
+    setCurrentVersionId(versionId);
+    setVersions([...versionStore.versions]);
+    setExplanation(version.explanation || "");
   };
+  
+  
   
   const handleExplain = async () => {
     if (!tree) return;
   
     try {
       setLoading(true);
+      const prevTree = versions.find(v => v.id === currentVersionId)?.tree || null;
   
       const res = await fetch("/api/explain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userInput }),
+        body: JSON.stringify({ userInput, prevTree, currentTree: tree }),
       });
   
       const data = await res.json();
@@ -213,6 +220,7 @@ const handleApply = () => {
         setExplanation(data.explanation || "No explanation generated.");
       }
   
+      // refresh versions
       const versionsRes = await fetch("/api/versions");
       const versionsData = await versionsRes.json();
       setVersions(versionsData.versions);
@@ -226,8 +234,6 @@ const handleApply = () => {
     }
   };
   
-
-  const jsxCode = tree ? jsonToJsx(tree) : "";
 
   return (
     <div className="app-container">
