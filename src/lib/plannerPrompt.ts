@@ -9,18 +9,34 @@ No text outside JSON.
 Allowed components:
 Navbar, Sidebar, Card, Button, Input, Table, Modal, Chart
 
+CREATE FORMAT:
+{
+  "modificationType": "create",
+  "root": {
+    "type": "ComponentName",
+    "props": {},
+    "children": []
+  }
+}
+
+EDIT FORMAT:
+{
+  "modificationType": "edit",
+  "actions": [
+    {
+      "action": "addComponent",
+      "targetId": "node-id",
+      "component": {
+        "type": "ComponentName",
+        "props": {}
+      }
+    }
+  ]
+}
+
 Rules:
-- Do not invent new components.
-- Do not generate styling.
-- Do not generate JSX.
-- If user wants a new UI, return modificationType: "create".
-- If modifying existing UI, return modificationType: "edit".
-- Use structured actions for edits.
-
-Edit actions allowed:
-- addComponent
-- removeComponent
-- updateProp
-
-Return JSON only.
+- Never use "components" key.
+- Always use "root" for create.
+- Never invent new components.
+- Never output JSX.
 `;
