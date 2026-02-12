@@ -1,60 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import JSONRenderer from "@/components/renderer/JSONRenderer";
 import { UIComponentNode } from "@/types/ui";
-import { jsonToJsx } from "@/lib/jsonToJsx";
+import { jsonToJsx, jsxToJson } from "@/lib/jsonJsxParser";
 
 
-// const testAllComponentsTree: UIComponentNode = {   // mock components - local testing
-//   id: "root",
-//   type: "Card",
-//   props: { title: "All Components Dashboard" },
-//   children: [
-//     {
-//       id: "nav1",
-//       type: "Navbar",
-//       props: { title: "Main Navbar" },
-//     },
-//     {
-//       id: "sidebar1",
-//       type: "Sidebar",
-//       props: { title: "Main Sidebar" },
-//     },
-//     {
-//       id: "card1",
-//       type: "Card",
-//       props: { title: "Statistics Card" },
-//       children: [
-//         {
-//           id: "btn1",
-//           type: "Button",
-//           props: { label: "Click Me" },
-//         },
-//         {
-//           id: "input1",
-//           type: "Input",
-//           props: { placeholder: "Enter value" },
-//         },
-//       ],
-//     },
-//     {
-//       id: "table1",
-//       type: "Table",
-//       props: { columns: ["Name", "Value"] },
-//     },
-//     {
-//       id: "modal1",
-//       type: "Modal",
-//       props: { title: "Settings Modal" },
-//     },
-//     {
-//       id: "chart1",
-//       type: "Chart",
-//       props: { title: "Sales Chart" },
-//     },
-//   ],
-// };
+const testAllComponentsTree: UIComponentNode = {   // mock components - local testing
+  id: "root",
+  type: "Card",
+  props: { title: "All Components Dashboard" },
+  children: [
+    {
+      id: "nav1",
+      type: "Navbar",
+      props: { title: "Main Navbar" },
+    },
+    {
+      id: "sidebar1",
+      type: "Sidebar",
+      props: { title: "Main Sidebar" },
+    },
+    {
+      id: "card1",
+      type: "Card",
+      props: { title: "Statistics Card" },
+      children: [
+        {
+          id: "btn1",
+          type: "Button",
+          props: { label: "Click Me" },
+        },
+        {
+          id: "input1",
+          type: "Input",
+          props: { placeholder: "Enter value" },
+        },
+      ],
+    },
+    {
+      id: "table1",
+      type: "Table",
+      props: { columns: ["Name", "Value"] },
+    },
+    {
+      id: "modal1",
+      type: "Modal",
+      props: { title: "Settings Modal" },
+    },
+    {
+      id: "chart1",
+      type: "Chart",
+      props: { title: "Sales Chart" },
+    },
+  ],
+};
 
 // import { applyPlan } from "@/lib/patchEngine";   // mock data - incremental patching
 //   const testAllComponentsTree: UIComponentNode = {
@@ -92,11 +92,12 @@ import { jsonToJsx } from "@/lib/jsonToJsx";
 
 export default function HomePage() {
   const [userInput, setUserInput] = useState("");
-  const [tree, setTree] = useState<UIComponentNode | null>(null);
+  const [tree, setTree] = useState<UIComponentNode | null>(testAllComponentsTree);
   const [explanation, setExplanation] = useState("");
   const [loading, setLoading] = useState(false);
   const [versions, setVersions] = useState<any[]>([]);
   const [currentVersionId, setCurrentVersionId] = useState<string | null>(null);
+  const [code, setCode] = useState(tree ? jsonToJsx(tree) : "");
 
 //   let updatedTree = applyPlan(testAllComponentsTree, addPlan);   // test incremental patching
 // console.log("After Add:", updatedTree);
@@ -106,7 +107,23 @@ export default function HomePage() {
 
 // updatedTree = applyPlan(updatedTree, updatePlan);
 // console.log("After Update:", updatedTree);
+
+useEffect(() => {
+  if (tree) {
+    setCode(jsonToJsx(tree));
+  }
+}, [tree]);
   
+const handleApply = () => {
+  try {
+    const newTree = jsxToJson(code);
+    setTree(newTree);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to parse JSX"); 
+  }
+};
+
   const handleSubmit = async () => {
     if (!userInput.trim()) return;
     
@@ -257,11 +274,18 @@ export default function HomePage() {
       <div className="panel right-panel">
         <h2>Code</h2>
         <div className="code-container">
-          {tree ? 
-          <pre>{jsxCode}</pre>
-          : "No code generated yet."
-          }
-        </div>
+  <textarea
+    style={{ width: "100%", height: "250px", fontFamily: "monospace" }}
+    value={code}          // generated from jsonToJsx(tree)
+    onChange={(e) => setCode(e.target.value)}
+  />
+  <button
+    style={{ marginTop: "8px", padding: "8px" }}
+    onClick={handleApply}
+  >
+    Apply Changes
+  </button>
+</div>
 
         <h2 style={{ marginTop: "24px" }}>Versions</h2>
         <div>

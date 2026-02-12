@@ -12,14 +12,19 @@ interface VersionState {
   currentVersionId: string | null;
 }
 
-export const versionStore: VersionState = {
-  versions: [],
-  currentVersionId: null,
+export const versionStore = {
+  versions: [] as {
+    id: string;
+    tree: UIComponentNode;
+    explanation?: string | null;
+    timestamp: number;
+  }[],
+  currentVersionId: null as string | null,
 };
 
 export function addVersion(
     tree: UIComponentNode,
-    explanation?: string
+    explanation?: string | null
   ) {
     const id = crypto.randomUUID();
   
@@ -44,7 +49,10 @@ export function getCurrentTree(): UIComponentNode | null {
 
 export function rollback(versionId: string) {
   const exists = versionStore.versions.find((v) => v.id === versionId);
-  if (exists) {
-    versionStore.currentVersionId = versionId;
-  }
+  if(!exists) {
+    console.error("Available version IDs:", versionStore.versions.map(v => v.id));
+    throw new Error("Version not found!")
+  };
+    
+  versionStore.currentVersionId = versionId;
 }
