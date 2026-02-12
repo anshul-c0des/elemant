@@ -5,3 +5,5 @@ export const ComponentRegistry = {
   Button,
   Card,
 };
+
+export const AllowedComponents = Object.keys(ComponentRegistry);

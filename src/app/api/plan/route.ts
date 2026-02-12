@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-import { plannerSystemPrompt } from "@/lib/plannerPrompt";
+import { AllowedComponents } from "@/lib/componentRegistry";
+import { getPlannerPrompt } from "@/lib/plannerPrompt";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
     });
 
     const result = await model.generateContent([
-      plannerSystemPrompt,
+      getPlannerPrompt(AllowedComponents),
       `User request: ${userInput}`,
     ]);
 
@@ -23,6 +24,10 @@ export async function POST(req: Request) {
     const cleaned = text.replace(/```json|```/g, "").trim();
 
     const parsed = JSON.parse(cleaned);
+
+    if (!parsed.modificationType) {
+      throw new Error("Invalid planner output");
+    }    
 
     return NextResponse.json(parsed);
   } catch (error) {

@@ -35,6 +35,11 @@ export default function HomePage() {
 
       const data = await genRes.json();
 
+      if (data.error) {
+        setExplanation("Error: " + data.error);
+        return;
+      }
+
       if (data.tree) {
         setTree(data.tree);
         setExplanation(data.explanation || "");

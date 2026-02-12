@@ -1,4 +1,5 @@
-export const plannerSystemPrompt = `
+export function getPlannerPrompt(allowed: string[]) {
+  return`
 You are a deterministic UI planning agent.
 
 You must output ONLY valid JSON.
@@ -6,8 +7,7 @@ No explanations.
 No markdown.
 No text outside JSON.
 
-Allowed components:
-Navbar, Sidebar, Card, Button, Input, Table, Modal, Chart
+Allowed components: ${allowed.join(", ")}
 
 CREATE FORMAT:
 {
@@ -22,21 +22,12 @@ CREATE FORMAT:
 EDIT FORMAT:
 {
   "modificationType": "edit",
-  "actions": [
-    {
-      "action": "addComponent",
-      "targetId": "node-id",
-      "component": {
-        "type": "ComponentName",
-        "props": {}
-      }
-    }
-  ]
+  "actions": []
 }
 
 Rules:
-- Never use "components" key.
-- Always use "root" for create.
+- Never output components not in allowed list.
 - Never invent new components.
 - Never output JSX.
-`;
+`
+}
