@@ -163,10 +163,16 @@ const handleApply = async () => {
   
     try {
       setExpLoading(true);
-      const prevTree =
-      currentVersionId
-        ? versionStore.versions.find((v) => v.id === currentVersionId)?.tree
-        : null;
+
+      let prevTree: UIComponentNode | null = null;
+
+      if (currentVersionId) {
+        const currentIndex = versionStore.versions.findIndex(v => v.id === currentVersionId);
+        if (currentIndex > 0) {
+          prevTree = structuredClone(versionStore.versions[currentIndex - 1].tree);
+        }
+      }
+      
   
       const res = await fetch("/api/explain", {
         method: "POST",
@@ -253,13 +259,15 @@ const handleApply = async () => {
   
             {/* EXPLANATION */}
             <h2 style={{ marginTop: "24px" }}>Explanation</h2>
+            {!explanation && 
             <button
-              onClick={handleExplain}
-              disabled={expLoading || !userInput.trim()}
-              style={{ marginTop: "10px", padding: "9px 11px" }}
+            onClick={handleExplain}
+            disabled={expLoading || !userInput.trim()}
+            style={{ marginTop: "10px", padding: "9px 11px" }}
             >
               {expLoading ? "Processing..." : "Explain UI"}
             </button>
+            }
   
             {explanation && (
               <div className="placeholder">

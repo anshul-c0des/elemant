@@ -100,7 +100,7 @@ button:disabled {
 .preview-container {
   margin-top: 12px;
   padding: 24px;
-  border-radius: 12px;
+  border-radius: 3px;
   min-height: 400px;
   background: #ffffff;
   color: #000000;
