@@ -1,5 +1,5 @@
 interface InputProps {
-  placeholder?: string;
+  placeholder: string;
   type?: "text" | "password";
   name: string,
   value?: string;

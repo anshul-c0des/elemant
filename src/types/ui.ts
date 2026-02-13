@@ -6,7 +6,10 @@ export type ComponentType =
   | "Input"
   | "Table"
   | "Modal"
-  | "Chart";
+  | "Chart"
+  | "Page"
+  | "Main"
+  | "Section"
 
 export interface UIComponentNode {
   id: string;

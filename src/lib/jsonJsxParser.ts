@@ -1,39 +1,86 @@
 import { UIComponentNode } from "@/types/ui";
 import { parse } from "@babel/parser";
-import traverse from "@babel/traverse";
 import { AllowedComponents } from "./componentRegistry";
 
 export function jsxToJson(code: string): UIComponentNode {
-  // Parse JSX string into AST
   const ast = parse(code, {
     sourceType: "module",
     plugins: ["jsx", "typescript"],
   });
 
-  let rootNode: UIComponentNode | null = null;
+  const body = ast.program.body;
 
-  // Recursive function to convert JSXElement AST node into UIComponentNode
+  if (body.length !== 1 || body[0].type !== "ExpressionStatement") {
+    throw new Error("Code must contain a single root JSX element");
+  }
+
+  const expression = body[0].expression;
+
+  if (expression.type !== "JSXElement") {
+    throw new Error("Root must be a JSX element");
+  }
+
   function jsxElementToNode(node: any): UIComponentNode {
     const type = node.openingElement.name.name;
-    const props: Record<string, any> = {};
 
-      if (!AllowedComponents.includes(type)) {
-        throw new Error(`Invalid component type: ${type}`);
+    if (!AllowedComponents.includes(type)) {
+      throw new Error(`Invalid component type: ${type}`);
+    }
+
+    const props: Record<string, unknown> = {};
+
+    for (const attr of node.openingElement.attributes) {
+      if (attr.type === "JSXSpreadAttribute") {
+        throw new Error("Spread attributes are not allowed");
       }
 
-    node.openingElement.attributes.forEach((attr: any) => {
-      if (attr.type === "JSXAttribute") {
-        const key = attr.name.name;
-        let value = null;
-        if (!attr.value) value = true;
-        else if (attr.value.type === "StringLiteral") value = attr.value.value;
-        else if (attr.value.type === "JSXExpressionContainer")
-          value = attr.value.expression.value ?? null;
-        props[key] = value;
-      }
-    });
+      if (attr.type !== "JSXAttribute") continue;
 
-    const children = (node.children || [])
+      const key = attr.name.name;
+
+      if (!attr.value) {
+        props[key] = true;
+        continue;
+      }
+
+      if (attr.value.type === "StringLiteral") {
+        props[key] = attr.value.value;
+        continue;
+      }
+
+      if (attr.value.type === "JSXExpressionContainer") {
+        const expr = attr.value.expression;
+
+        if (
+          expr.type === "StringLiteral" ||
+          expr.type === "NumericLiteral" ||
+          expr.type === "BooleanLiteral"
+        ) {
+          props[key] = expr.value;
+          continue;
+        }
+        if (expr.type === "ArrayExpression") {
+          props[key] = expr.elements.map((el: any) => {
+            if (
+              el.type === "StringLiteral" ||
+              el.type === "NumericLiteral" ||
+              el.type === "BooleanLiteral"
+            ) {
+              return el.value;
+            }
+            throw new Error(
+              `Only literal values allowed in array prop "${key}"`
+            );
+          });
+          continue;
+        }
+      }
+
+
+      throw new Error(`Invalid value for prop "${key}"`);
+    }
+
+    const children = node.children
       .filter((c: any) => c.type === "JSXElement")
       .map((c: any) => jsxElementToNode(c));
 
@@ -45,20 +92,7 @@ export function jsxToJson(code: string): UIComponentNode {
     };
   }
 
-  // Traverse the AST to find the first JSXElement
-  traverse(ast, {
-    JSXElement(path) {
-      if (!rootNode) {
-        rootNode = jsxElementToNode(path.node);
-      }
-    },
-  });
-
-  if (!rootNode) {
-    throw new Error("No JSX element found in code");
-  }
-
-  return rootNode;
+  return jsxElementToNode(expression);
 }
 
 export function jsonToJsx(node: UIComponentNode, indent = 0): string {

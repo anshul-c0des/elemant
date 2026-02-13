@@ -1,5 +1,5 @@
 interface ChartProps {
-    title?: string;
+    title: string;
   }
   
   export default function Chart({ title = "Chart" }: ChartProps) {

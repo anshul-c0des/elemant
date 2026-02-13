@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
 interface SidebarProps {
-  title?: string;
+  title: string;
   children?: ReactNode;
 }
 

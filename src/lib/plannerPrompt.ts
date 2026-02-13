@@ -20,7 +20,7 @@ Component definitions:
 - Input: Text input field. Props:
   - placeholder (string)
   - type (string, optional)
-  - name (string)
+  - name (string, unique identifier)
 - Table: Tabular data display. Props:
   - columns (string[])
 - Chart: Data visualization component. Props: title (string)

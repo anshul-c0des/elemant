@@ -19,16 +19,21 @@ export async function POST(req: Request) {
 
     const isFirstVersion = !prevTree;
 
-const messages = [
-  isFirstVersion
-    ? explainerInitialPrompt
-    : explainerDiffPrompt,
-  `User request: ${userInput || ""}`,
-  isFirstVersion
-    ? `Current UI Tree: ${JSON.stringify(currentTree)}`
-    : `Previous UI Tree: ${JSON.stringify(prevTree)}
-       Current UI Tree: ${JSON.stringify(currentTree)}`
-];
+    const messages = [];
+
+    if (isFirstVersion) {
+      messages.push(explainerInitialPrompt);
+      messages.push(`User request: ${userInput || ""}`);
+      messages.push(`Current UI Tree: ${JSON.stringify(currentTree)}`);
+    } else {
+      messages.push(explainerDiffPrompt);
+      messages.push(`User request: ${userInput || ""}`);
+      messages.push(
+        `Previous UI Tree: ${JSON.stringify(prevTree)}\nCurrent UI Tree: ${JSON.stringify(
+          currentTree
+        )}`
+      );
+    }
 
     const result = await model.generateContent(messages);
 
