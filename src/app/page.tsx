@@ -259,7 +259,7 @@ const handleApply = async () => {
   
             {/* EXPLANATION */}
             <h2 style={{ marginTop: "24px" }}>Explanation</h2>
-            {!explanation && 
+            {
             <button
             onClick={handleExplain}
             disabled={expLoading || !userInput.trim()}
