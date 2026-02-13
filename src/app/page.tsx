@@ -5,110 +5,69 @@ import JSONRenderer from "@/components/renderer/JSONRenderer";
 import { UIComponentNode } from "@/types/ui";
 import { jsonToJsx, jsxToJson } from "@/lib/jsonJsxParser";
 import { addVersion, versionStore } from "@/lib/versionStore";
+import Editor from "@monaco-editor/react";
 
-const testAllComponentsTree: UIComponentNode = {   // mock components - local testing
-  id: "root",
-  type: "Card",
-  props: { title: "All Components Dashboard" },
-  children: [
-    {
-      id: "nav1",
-      type: "Navbar",
-      props: { title: "Main Navbar" },
-    },
-    {
-      id: "sidebar1",
-      type: "Sidebar",
-      props: { title: "Main Sidebar" },
-    },
-    {
-      id: "card1",
-      type: "Card",
-      props: { title: "Statistics Card" },
-      children: [
-        {
-          id: "btn1",
-          type: "Button",
-          props: { label: "Click Me" },
-        },
-        {
-          id: "input1",
-          type: "Input",
-          props: { placeholder: "Enter value" },
-        },
-      ],
-    },
-    {
-      id: "table1",
-      type: "Table",
-      props: { columns: ["Name", "Value"] },
-    },
-    {
-      id: "modal1",
-      type: "Modal",
-      props: { title: "Settings Modal" },
-    },
-    {
-      id: "chart1",
-      type: "Chart",
-      props: { title: "Sales Chart" },
-    },
-  ],
-};
-
-// import { applyPlan } from "@/lib/patchEngine";   // mock data - incremental patching
-//   const testAllComponentsTree: UIComponentNode = {
-//     id: "root",
-//     type: "Card",
-//     props: { title: "Dashboard" },
-//     children: [
-//       { id: "btn1", type: "Button", props: { label: "Click Me" } },
-//       { id: "input1", type: "Input", props: { placeholder: "Type here" } },
-//     ],
-//   };
-//   const addPlan = {
-//     modificationType: "edit",
-//     actions: [
-//       {
-//         action: "addComponent",
-//         targetId: "root", // parent where to add
-//         component: { type: "Button", props: { label: "New Button" } },
-//       },
-//     ],
-//   };
-//   const removePlan = {
-//     modificationType: "edit" as const,
-//     actions: [
-//       { action: "removeComponent", targetId: "btn1" },
-//     ],
-//   };
-//   const updatePlan = {
-//     modificationType: "edit" as const,
-//     actions: [
-//       { action: "updateProp", targetId: "input1", propKey: "placeholder", propValue: "Updated Text" },
-//     ],
-//   };
-
+// const testAllComponentsTree: UIComponentNode = {   // mock components - local testing
+//   id: "root",
+//   type: "Card",
+//   props: { title: "All Components Dashboard" },
+//   children: [
+//     {
+//       id: "nav1",
+//       type: "Navbar",
+//       props: { title: "Main Navbar" },
+//     },
+//     {
+//       id: "sidebar1",
+//       type: "Sidebar",
+//       props: { title: "Main Sidebar" },
+//     },
+//     {
+//       id: "card1",
+//       type: "Card",
+//       props: { title: "Statistics Card" },
+//       children: [
+//         {
+//           id: "btn1",
+//           type: "Button",
+//           props: { label: "Click Me" },
+//         },
+//         {
+//           id: "input1",
+//           type: "Input",
+//           props: { placeholder: "Enter value" },
+//         },
+//       ],
+//     },
+//     {
+//       id: "table1",
+//       type: "Table",
+//       props: { columns: ["Name", "Value"] },
+//     },
+//     {
+//       id: "modal1",
+//       type: "Modal",
+//       props: { title: "Settings Modal" },
+//     },
+//     {
+//       id: "chart1",
+//       type: "Chart",
+//       props: { title: "Sales Chart" },
+//     },
+//   ],
+// };
 
 export default function HomePage() {
   const [userInput, setUserInput] = useState("");
-  const [tree, setTree] = useState<UIComponentNode | null>(testAllComponentsTree);
+  const [tree, setTree] = useState<UIComponentNode | null>(null);
   const [explanation, setExplanation] = useState("");
   const [loading, setLoading] = useState(false);
+  const [expLoading, setExpLoading] = useState(false);
   const [versions, setVersions] = useState<any[]>([]);
   const [currentVersionId, setCurrentVersionId] = useState<string | null>(null);
   const [code, setCode] = useState(tree ? jsonToJsx(tree) : "");
   const [error, setError] = useState("");
-
-
-//   let updatedTree = applyPlan(testAllComponentsTree, addPlan);   // test incremental patching
-// console.log("After Add:", updatedTree);
-
-// updatedTree = applyPlan(updatedTree, removePlan);
-// console.log("After Remove:", updatedTree);
-
-// updatedTree = applyPlan(updatedTree, updatePlan);
-// console.log("After Update:", updatedTree);
+  const [planSummary, setPlanSummary] = useState("");
 
 useEffect(() => {
   if (tree) {
@@ -124,7 +83,7 @@ const handleApply = async () => {
 
     setTree(updatedTree);
 
-    const newVersionId = addVersion(updatedTree, "Manual edit");
+    const newVersionId = addVersion(updatedTree, "Manual Update" );
     setCurrentVersionId(newVersionId);
     setVersions([...versionStore.versions]);
 
@@ -168,9 +127,11 @@ const handleApply = async () => {
       if (data.tree) {
         setTree(data.tree);
         setExplanation(data.explanation || "");
+        const summary = plan.summary || "";
+        setPlanSummary(summary);
 
         // Create a new version automatically
-        const newVersionId = addVersion(data.tree, data.explanation || null);
+        const newVersionId = addVersion(data.tree);
         setCurrentVersionId(newVersionId);
 
         setVersions([...versionStore.versions]);
@@ -197,14 +158,15 @@ const handleApply = async () => {
     setExplanation(version.explanation || "");
   };
   
-  
-  
   const handleExplain = async () => {
     if (!tree) return;
   
     try {
-      setLoading(true);
-      const prevTree = versions.find(v => v.id === currentVersionId)?.tree || null;
+      setExpLoading(true);
+      const prevTree =
+      currentVersionId
+        ? versionStore.versions.find((v) => v.id === currentVersionId)?.tree
+        : null;
   
       const res = await fetch("/api/explain", {
         method: "POST",
@@ -216,106 +178,179 @@ const handleApply = async () => {
   
       if (data.error) {
         setExplanation("Error: " + data.error);
-      } else {
-        setExplanation(data.explanation || "No explanation generated.");
+        return;
       }
+
+      const newExplanation = data.explanation || "No explanation generated.";
+      setExplanation(newExplanation);
   
-      // refresh versions
-      const versionsRes = await fetch("/api/versions");
-      const versionsData = await versionsRes.json();
-      setVersions(versionsData.versions);
-      setCurrentVersionId(versionsData.currentVersionId);
+      if (currentVersionId) {
+      // update current version with explanation
+      setVersions((prev) =>
+        prev.map((v) =>
+          v.id === currentVersionId ? { ...v, explanation: newExplanation } : v
+        )
+      );
   
+      // Also update versionStore so rollback still works
+      const versionIndex = versionStore.versions.findIndex(
+        (v) => v.id === currentVersionId
+      );
+      if (versionIndex >= 0) {
+        versionStore.versions[versionIndex].explanation = newExplanation;
+      }
+    }
     } catch (err) {
       console.error("Explain error:", err);
       setExplanation("Error generating explanation.");
     } finally {
-      setLoading(false);
+      setExpLoading(false);
     }
   };
   
+  const originalCode = tree ? jsonToJsx(tree) : "";
+  const hasChanges = code !== originalCode;  
 
   return (
     <div className="app-container">
+  
       {/* LEFT PANEL */}
       <div className="panel left-panel">
         <h2>Chat</h2>
-
+  
         <textarea
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           placeholder="Describe the UI you want..."
-          style={{ width: "100%", height: "80px", marginTop: "8px" }}
+          style={{ minWidth: "100%", height: "80px", marginTop: "8px", maxWidth: "100%" }}
         />
-
+  
         <button
-          onClick={handleSubmit} disabled={loading}
-          style={{ marginTop: "8px", padding: "8px 12px" }}
+          onClick={handleSubmit}
+          disabled={loading || !userInput.trim()}
+          style={{ marginTop: "8px", padding: "9px 12px" }}
         >
           {loading ? "Generating..." : "Generate"}
         </button>
-
-        <h2 style={{ marginTop: "24px" }}>Explanation</h2>
-        <button onClick={handleExplain} disabled={!tree || loading} style={{ marginTop: "10px", padding:"4px" }}>{loading ? "Processing..." : "Explain UI"}</button>
-        {explanation && 
-        <div className="placeholder">
-          {explanation}
-        </div>
-        }
+  
+        {/* ERROR */}
+        {error && (
+          <div className="placeholder" style={{ marginTop: "16px", color: "red" }}>
+            {error}
+          </div>
+        )}
+  
+        {/* Only show below sections if tree exists */}
+        {tree && (
+          <>
+            {/* PLAN SUMMARY */}
+            {planSummary && (
+              <>
+                <h2 style={{ marginTop: "24px" }}>Plan Summary</h2>
+                <div className="plan-summary">{planSummary}</div>
+              </>
+            )}
+  
+            {/* EXPLANATION */}
+            <h2 style={{ marginTop: "24px" }}>Explanation</h2>
+            <button
+              onClick={handleExplain}
+              disabled={expLoading || !userInput.trim()}
+              style={{ marginTop: "10px", padding: "9px 11px" }}
+            >
+              {expLoading ? "Processing..." : "Explain UI"}
+            </button>
+  
+            {explanation && (
+              <div className="placeholder">
+                {explanation}
+              </div>
+            )}
+          </>
+        )}
       </div>
-
+  
       {/* CENTER PANEL */}
       <div className="panel center-panel">
         <h2>Live Preview</h2>
+  
         <div className="preview-container">
-          {tree ? (
-            <JSONRenderer node={tree} />
-          ) : (
-            <div>No UI generated yet.</div>
-          )}
+          <div className="preview-canvas">
+            {tree ? <JSONRenderer node={tree} /> : <div>No UI generated yet.</div>}
+          </div>
         </div>
       </div>
-
+  
       {/* RIGHT PANEL */}
       <div className="panel right-panel">
-        <h2>Code</h2>
-        <div className="code-container">
-  <textarea
-    style={{ width: "100%", height: "250px", fontFamily: "monospace" }}
-    value={code}          // generated from jsonToJsx(tree)
-    onChange={(e) => setCode(e.target.value)}
-  />
-  <button
-    style={{ marginTop: "8px", padding: "8px" }}
-    onClick={handleApply}
-  >
-    Apply Changes
-  </button>
-</div>
+  
+        {/* Only show code editor if tree exists */}
+        {tree && (
+          <>
+            <h2>Code Editor</h2>
+            <div className="code-container">
 
+            <Editor
+              height="90%"
+              defaultLanguage="javascript"
+              value={code}
+              onChange={(value) => setCode(value || "")}
+              theme="vs-dark"
+              options={{
+                fontSize: 13,
+                lineNumbers: "on",
+                lineNumbersMinChars: 2, // smaller number gutter
+                minimap: { enabled: false }, // remove minimap
+                scrollBeyondLastLine: false,
+                wordWrap: "on", // wrap by default
+                wrappingIndent: "same",
+                scrollbar: {
+                  verticalScrollbarSize: 6,
+                  horizontalScrollbarSize: 6,
+                },
+                hideCursorInOverviewRuler: true,
+                lineDecorationsWidth: 0,
+                padding: {
+                  top: 10,
+                  bottom: 10,
+                },
+              }}
+            />
+
+              <button
+                style={{ marginTop: "8px", padding: "8px" }}
+                onClick={handleApply}
+                disabled={!tree || !hasChanges}
+              >
+                Apply Changes
+              </button>
+            </div>
+          </>
+        )}
+  
+        {/* Versions always visible */}
         <h2 style={{ marginTop: "24px" }}>Versions</h2>
         <div>
-          {versions.length>0 ? 
-            versions.map((v) => (
-              <div
-                key={v.id}
-                onClick={() => handleRollback(v.id)}
-                style={{
-                  padding: "8px",
-                  cursor: "pointer",
-                  background:
-                    v.id === currentVersionId ? "#ddd" : "#f5f5f5",
-                  marginBottom: "4px",
-                }}
-              >
-                {new Date(v.timestamp).toLocaleTimeString()}
-              </div>
-            ))
-            :
-            "No version history yet."
-          }
+          {versions.length > 0 ? (
+            [...versions]
+              .sort((a, b) => b.timestamp - a.timestamp)
+              .map((v) => (
+                <div
+                  key={v.id}
+                  onClick={() => handleRollback(v.id)}
+                  className={`version-item ${v.id === currentVersionId ? "active" : ""}`}
+                >
+                  {new Date(v.timestamp).toLocaleTimeString()}
+                </div>
+              ))
+          ) : (
+            "No version history."
+          )}
         </div>
+
       </div>
+  
     </div>
   );
+  
 }

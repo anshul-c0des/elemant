@@ -12,9 +12,10 @@ export default function Card({ title = "Card", children }: CardProps) {
         border: "1px solid #ddd",
         padding: "16px",
         marginBottom: "16px",
+        color: "#000"
       }}
     >
-      <h3>{title}</h3>
+      <h3 style={{color: "#000"}} >{title}</h3>
       <div>{children}</div>
     </div>
   );

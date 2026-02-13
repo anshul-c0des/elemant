@@ -1,6 +1,7 @@
 import { UIComponentNode } from "@/types/ui";
 import { parse } from "@babel/parser";
 import traverse from "@babel/traverse";
+import { AllowedComponents } from "./componentRegistry";
 
 export function jsxToJson(code: string): UIComponentNode {
   // Parse JSX string into AST
@@ -15,6 +16,10 @@ export function jsxToJson(code: string): UIComponentNode {
   function jsxElementToNode(node: any): UIComponentNode {
     const type = node.openingElement.name.name;
     const props: Record<string, any> = {};
+
+      if (!AllowedComponents.includes(type)) {
+        throw new Error(`Invalid component type: ${type}`);
+      }
 
     node.openingElement.attributes.forEach((attr: any) => {
       if (attr.type === "JSXAttribute") {
@@ -55,7 +60,6 @@ export function jsxToJson(code: string): UIComponentNode {
 
   return rootNode;
 }
-
 
 export function jsonToJsx(node: UIComponentNode, indent = 0): string {
   const space = "  ".repeat(indent);

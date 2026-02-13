@@ -1,22 +1,49 @@
+import { ReactNode } from "react";
+
 interface ModalProps {
-    title?: string;
-  }
-  
-  export default function Modal({ title = "Modal Title" }: ModalProps) {
-    return (
+  title: string;
+  isOpen: boolean;
+  onClose?: () => void;
+  children?: ReactNode;
+}
+
+export default function Modal({ title, isOpen, onClose, children }: ModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "rgba(0,0,0,0.5)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 1000,
+      }}
+    >
       <div
         style={{
-          padding: "16px",
-          border: "1px solid #000",
-          background: "#fff",
-          marginTop: "12px",
+          backgroundColor: "#fff",
+          padding: "24px",
+          borderRadius: "8px",
+          minWidth: "300px",
+          maxWidth: "600px",
         }}
       >
-        <strong>{title}</strong>
-        <div style={{ marginTop: "8px" }}>
-          Modal content goes here.
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+          <strong>{title}</strong>
+          {onClose && (
+            <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", fontSize: "16px" }}>
+              ✕
+            </button>
+          )}
         </div>
+        <div>{children}</div>
       </div>
-    );
-  }
-  
+    </div>
+  );
+}

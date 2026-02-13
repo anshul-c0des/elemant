@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-import { explainerSystemPrompt } from "@/lib/explainerPrompt";
-import { getCurrentTree, addVersion } from "@/lib/versionStore";
+import { explainerDiffPrompt, explainerInitialPrompt } from "@/lib/explainerPrompt";
+import { addVersion } from "@/lib/versionStore";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -17,12 +17,18 @@ export async function POST(req: Request) {
       model: "gemini-3-flash-preview",
     });
 
-    const messages = [
-      explainerSystemPrompt,
-      `User request: ${userInput || ""}`,
-      `Previous UI Tree: ${JSON.stringify(prevTree)}`,
-      `Current UI Tree: ${JSON.stringify(currentTree)}`
-    ];
+    const isFirstVersion = !prevTree;
+
+const messages = [
+  isFirstVersion
+    ? explainerInitialPrompt
+    : explainerDiffPrompt,
+  `User request: ${userInput || ""}`,
+  isFirstVersion
+    ? `Current UI Tree: ${JSON.stringify(currentTree)}`
+    : `Previous UI Tree: ${JSON.stringify(prevTree)}
+       Current UI Tree: ${JSON.stringify(currentTree)}`
+];
 
     const result = await model.generateContent(messages);
 
