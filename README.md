@@ -1,36 +1,222 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📘 Elemant – Deterministic AI UI Generator
 
-## Getting Started
+Elemant is a deterministic AI-powered UI generator built with Next.js and Gemini.
 
-First, run the development server:
+It converts natural language UI intent into a structured component tree using a strict Planner → Generator → Explainer architecture.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 [Live Demo](https://elemant.vercel.app)
+
+## 🏗 Architecture Overview
+
+Elemant follows a strict 3-layer architecture:
+
+```mermaid
+flowchart TD
+
+A[User Input] --> B[Planner API - Gemini 3 Flash]
+B --> C[Structured JSON Plan]
+
+C --> D[Deterministic Patch Engine]
+D --> E[Validated Component Tree]
+
+E --> F[Explainer API - Gemini 3 Flash]
+F --> G[Version Store (In-Memory)]
+
+G --> H[Live Preview Renderer]
+G --> I[Derived JSX Code View]
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🧠 System Design
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. Determinism First
+- The LLM never generates JSX or React components.
+- It only generates structured JSON plans.
+- Rendering is controlled by a deterministic engine.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. Strict Component System
+Allowed Components:
+- Page
+- Main
+- Section
+- Navbar
+- Sidebar
+- Card
+- Button
+- Input
+- Table
+- Modal
+- Chart
 
-## Learn More
+The AI cannot create new components.
 
-To learn more about Next.js, take a look at the following resources:
+All components are: Pre-styled, Deterministic, Prop-restricted
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Planner Layer (LLM)
+- Route: /api/plan
+Uses gemini-3-flash-preview
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Receives:
+    - User intent
+    - Current UI tree (with IDs)
 
-## Deploy on Vercel
+Returns:
+```json
+{
+  "modificationType": "create" | "edit",
+  "summary": "short description",
+  "actions": [...]
+}
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 4. Generator Layer (Deterministic)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Route: /api/generate
+- Applies structured patch actions
+- Uses fixed component registry
+- Enforces schema validation
+- Rejects unknown components
+- Prevents full rewrites unless explicitly requested
+
+Supported operations:
+- addComponent
+- removeComponent
+- updateProp
+
+### 5. Explainer Layer (LLM)
+Route: /api/explain
+- Receives previousTree + currentTree
+- Generates human-readable reasoning
+- Stored per version
+- Triggered manually
+
+## Setup Instructions
+1. Clone
+```bash
+git clone <repo-url>
+cd elemant
+```
+2. Install
+```bash
+npm install
+```
+3. Environment Variables
+
+Create .env.local:
+```ini
+GEMINI_API_KEY=your_api_key_here
+```
+4. Run Locally
+```bash
+npm run dev
+```
+
+## 🗂 Versioning System
+
+Stored in-memory:
+```json
+{
+  versions: [
+    {
+      id,
+      tree,
+      explanation?,
+      timestamp
+    }
+  ],
+  currentVersionId
+}
+```
+Features:
+- Automatic version creation after generation
+- Manual version creation after code edits
+- Rollback support
+- Explanation persistence
+
+No database used.
+
+## 🛡 Validation & Safety
+
+Every tree is validated before rendering:
+- Component whitelist enforcement
+- Required prop enforcement & Unknown prop rejection
+- Max depth limit
+- Max children limit
+- Literal-only prop values
+- Basic unsafe string pattern blocking
+
+Manual JSX edits are parsed using Babel AST, but:
+- No code is executed
+- Only allowed JSX structures are accepted
+- Spread attributes are rejected
+- Only literal values allowed in props
+
+Rendering is fully controlled by the deterministic registry.
+
+## 🔄 Incremental Editing
+
+Elemant supports:
+- Incremental patching
+- Targeted component updates
+- Prop updates
+- Structural edits
+- Rollback to previous state
+
+Full regeneration is only allowed if explicitly requested.
+
+## ⚡ Token & Model Strategy
+
+Model: gemini-3-flash-preview
+
+Reasoning:
+- Lower latency
+- Lower token cost
+- Good structured JSON output
+- Tree regeneration is avoided. Only patches are generated.
+
+Separate planner and explainer calls reduce repeated generation
+
+## 📦 Tech Stack
+
+Frontend: Next.js (App Router)
+AI: Gemini 3 Flash Preview
+Rendering: Deterministic JSON Renderer
+State: In-memory Version Store
+Deployment: Vercel
+
+## Tradeoffs & Constraints
+
+### In-Memory Version Store
+Pros:
+- Simpler architecture
+- No database setup
+- Deterministic rollback
+
+Cons:
+- State resets on server restart
+
+### Fixed Component Registry
+Pros:
+- Strong safety guarantees
+- Predictable rendering
+- Strict validation
+
+Cons:
+- Limited flexibility
+- No arbitrary custom UI components
+
+### Limitations
+- No persistence layer
+- No authentication
+- Desktop-first layout
+
+## 🚀 Future Improvements
+- Persistent database storage
+- Real-time collaborative editing
+- Token usage analytics
+
+## 🎯 Key Design Principle
+
+The LLM proposes structured intent.
+The deterministic engine validates and decides what renders.
+
+This separation guarantees safety, predictability, and incremental control.
