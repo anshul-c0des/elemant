@@ -20,7 +20,7 @@ C --> D[Deterministic Patch Engine]
 D --> E[Validated Component Tree]
 
 E --> F[Explainer API - Gemini 3 Flash]
-F --> G[Version Store (In-Memory)]
+F --> G[Version Store - InMemory]
 
 G --> H[Live Preview Renderer]
 G --> I[Derived JSX Code View]
