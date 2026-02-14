@@ -2,7 +2,7 @@ import { UIComponentNode } from "@/types/ui";
 import { parse } from "@babel/parser";
 import { AllowedComponents } from "./componentRegistry";
 
-export function jsxToJson(code: string): UIComponentNode {
+export function jsxToJson(code: string): UIComponentNode {   // converts user written jsx to json
   const ast = parse(code, {
     sourceType: "module",
     plugins: ["jsx", "typescript"],
@@ -10,20 +10,20 @@ export function jsxToJson(code: string): UIComponentNode {
 
   const body = ast.program.body;
 
-  if (body.length !== 1 || body[0].type !== "ExpressionStatement") {
+  if (body.length !== 1 || body[0].type !== "ExpressionStatement") {   // blank check
     throw new Error("Code must contain a single root JSX element");
   }
 
   const expression = body[0].expression;
 
-  if (expression.type !== "JSXElement") {
+  if (expression.type !== "JSXElement") {   // jsx element check
     throw new Error("Root must be a JSX element");
   }
 
   function jsxElementToNode(node: any): UIComponentNode {
     const type = node.openingElement.name.name;
 
-    if (!AllowedComponents.includes(type)) {
+    if (!AllowedComponents.includes(type)) {   // checks whether user entered element is allowed
       throw new Error(`Invalid component type: ${type}`);
     }
 
@@ -59,7 +59,7 @@ export function jsxToJson(code: string): UIComponentNode {
           props[key] = expr.value;
           continue;
         }
-        if (expr.type === "ArrayExpression") {
+        if (expr.type === "ArrayExpression") {   // array for table columns
           props[key] = expr.elements.map((el: any) => {
             if (
               el.type === "StringLiteral" ||
@@ -75,7 +75,6 @@ export function jsxToJson(code: string): UIComponentNode {
           continue;
         }
       }
-
 
       throw new Error(`Invalid value for prop "${key}"`);
     }
@@ -95,7 +94,7 @@ export function jsxToJson(code: string): UIComponentNode {
   return jsxElementToNode(expression);
 }
 
-export function jsonToJsx(node: UIComponentNode, indent = 0): string {
+export function jsonToJsx(node: UIComponentNode, indent = 0): string {   // json to jsx converter for live preview
   const space = "  ".repeat(indent);
 
   const props =
@@ -103,7 +102,9 @@ export function jsonToJsx(node: UIComponentNode, indent = 0): string {
       ? " " +
         Object.entries(node.props)
           .map(([k, v]) =>
-            typeof v === "string" ? `${k}="${v}"` : `${k}={${JSON.stringify(v)}}`
+            typeof v === "string"
+              ? `${k}="${v}"`
+              : `${k}={${JSON.stringify(v)}}`
           )
           .join(" ")
       : "";

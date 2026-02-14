@@ -2,8 +2,8 @@ interface ButtonProps {
   title: string;
   variant?: "primary" | "secondary";
 }
-  
-export default function Button({ title, variant = "primary"}: ButtonProps) {
+
+export default function Button({ title, variant = "primary" }: ButtonProps) {
   const bgColor = variant === "primary" ? "#000" : "#6c757d";
   const textColor = "#fff";
   return (

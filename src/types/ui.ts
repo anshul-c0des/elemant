@@ -9,7 +9,7 @@ export type ComponentType =
   | "Chart"
   | "Page"
   | "Main"
-  | "Section"
+  | "Section";
 
 export interface UIComponentNode {
   id: string;

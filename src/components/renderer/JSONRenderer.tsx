@@ -6,7 +6,7 @@ interface Props {
   node: UIComponentNode;
 }
 
-export default function JSONRenderer({ node }: Props) {
+export default function JSONRenderer({ node }: Props) {   // renderes React from JSON
   const Component =
     ComponentRegistry[node.type as keyof typeof ComponentRegistry];
 

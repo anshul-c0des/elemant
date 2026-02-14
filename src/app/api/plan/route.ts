@@ -7,7 +7,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: Request) {
   try {
-    const { userInput, currentTree } = await req.json();
+    const { userInput, currentTree } = await req.json();   // gets user input and current tree
 
     const model = genAI.getGenerativeModel({
       model: "gemini-3-flash-preview",
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     const result = await model.generateContent([
       getPlannerPrompt(AllowedComponents),
       `Current UI Tree (with IDs): ${JSON.stringify(currentTree)}`,
-      `User request: ${userInput}`
+      `User request: ${userInput}`,
     ]);
 
     const text = result.response.text();
@@ -28,14 +28,11 @@ export async function POST(req: Request) {
 
     if (!parsed.modificationType) {
       throw new Error("Invalid planner output");
-    }    
+    }
 
     return NextResponse.json(parsed);
   } catch (error) {
     console.error(error);
-    return NextResponse.json(
-      { error: "Planner failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Planner failed" }, { status: 500 });
   }
 }

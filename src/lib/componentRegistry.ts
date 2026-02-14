@@ -21,7 +21,7 @@ export const ComponentRegistry = {
   Chart,
   Page,
   Section,
-  Main
+  Main,
 };
 
 export const AllowedComponents = Object.keys(ComponentRegistry);

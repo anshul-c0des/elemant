@@ -5,10 +5,7 @@ interface SidebarProps {
   children?: ReactNode;
 }
 
-export default function Sidebar({
-  title = "Sidebar",
-  children,
-}: SidebarProps) {
+export default function Sidebar({ title = "Sidebar", children }: SidebarProps) {
   return (
     <div
       style={{

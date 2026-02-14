@@ -1,5 +1,5 @@
-export function getPlannerPrompt(allowed: string[]) {
-  return`
+export function getPlannerPrompt(allowed: string[]) {   // Planner Layer Prompt
+  return `
 You are a deterministic UI planning agent.
 
 You must output ONLY valid JSON.

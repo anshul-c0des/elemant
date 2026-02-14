@@ -1,3 +1,5 @@
+// Chooses prompt to explain or differentiate trees
+
 export const explainerInitialPrompt = `
 You are a UI explanation agent.
 

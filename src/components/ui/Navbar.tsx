@@ -1,13 +1,13 @@
 import { ReactNode } from "react";
 
 interface NavbarProps {
-    title: string;
-    children?: ReactNode;
-  }
-  
-  export default function Navbar({ title = "Navbar", children }: NavbarProps) {
-    return (
-      <div
+  title: string;
+  children?: ReactNode;
+}
+
+export default function Navbar({ title = "Navbar", children }: NavbarProps) {
+  return (
+    <div
       style={{
         padding: "12px 16px",
         background: "#111",
@@ -20,10 +20,7 @@ interface NavbarProps {
       }}
     >
       <span>{title}</span>
-      <div style={{ display: "flex", gap: "8px" }}>
-        {children}
-      </div>
+      <div style={{ display: "flex", gap: "8px" }}>{children}</div>
     </div>
-    );
-  }
-  
+  );
+}

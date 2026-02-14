@@ -1,12 +1,18 @@
 interface InputProps {
   placeholder: string;
   type?: "text" | "password";
-  name: string,
+  name: string;
   value?: string;
   onChange?: (value: string) => void;
 }
 
-export default function Input({ placeholder = "", type = "text", value = "", onChange, name }: InputProps) {
+export default function Input({
+  placeholder = "",
+  type = "text",
+  value = "",
+  onChange,
+  name,
+}: InputProps) {
   return (
     <input
       type={type}

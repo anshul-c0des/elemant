@@ -7,7 +7,12 @@ interface ModalProps {
   children?: ReactNode;
 }
 
-export default function Modal({ title, isOpen, onClose, children }: ModalProps) {
+export default function Modal({
+  title,
+  isOpen,
+  onClose,
+  children,
+}: ModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -34,10 +39,24 @@ export default function Modal({ title, isOpen, onClose, children }: ModalProps) 
           maxWidth: "600px",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "12px",
+          }}
+        >
           <strong>{title}</strong>
           {onClose && (
-            <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", fontSize: "16px" }}>
+            <button
+              onClick={onClose}
+              style={{
+                border: "none",
+                background: "none",
+                cursor: "pointer",
+                fontSize: "16px",
+              }}
+            >
               ✕
             </button>
           )}

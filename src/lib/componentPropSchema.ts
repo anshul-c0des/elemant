@@ -5,7 +5,7 @@ type PropSchema = {
   optional: string[];
 };
 
-export const ComponentPropSchema: Record<ComponentType, PropSchema> = {
+export const ComponentPropSchema: Record<ComponentType, PropSchema> = {   // Component Prop Schema Validation
   Page: { required: [], optional: [] },
   Main: { required: [], optional: [] },
   Section: { required: ["title"], optional: [] },
