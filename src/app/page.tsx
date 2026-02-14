@@ -262,7 +262,7 @@ const handleApply = async () => {
             {
             <button
             onClick={handleExplain}
-            disabled={expLoading || !userInput.trim()}
+            disabled={expLoading || !!explanation}
             style={{ marginTop: "10px", padding: "9px 11px" }}
             >
               {expLoading ? "Processing..." : "Explain UI"}
@@ -284,7 +284,7 @@ const handleApply = async () => {
   
         <div className="preview-container">
           <div className="preview-canvas">
-            {tree ? <JSONRenderer node={tree} /> : <div>No UI generated yet.</div>}
+            {tree ? <JSONRenderer node={tree} /> : loading ? <div>Generating UI...</div> : <div>No UI generated yet.</div>}
           </div>
         </div>
       </div>
