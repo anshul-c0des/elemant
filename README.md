@@ -33,23 +33,12 @@ G --> I[JSX Code View]
 - It only generates structured JSON plans.
 - Rendering is controlled by a deterministic engine.
 
-### 2. Strict Component System
-Allowed Components:
-- Page
-- Main
-- Section
-- Navbar
-- Sidebar
-- Card
-- Button
-- Input
-- Table
-- Modal
-- Chart
+### 2. Fixed Component Library
+- The following components are strictly allowed and are pre-styled:
+  - Page, Main, Section, Navbar, Sidebar, Card, Button, Input, Table, Modal, Chart
+- The AI is restricted to using only these components. No new components can be created, and no arbitrary styles can be added.
+- All components are deterministic and have predefined properties (props), ensuring consistent behavior across sessions.
 
-The AI cannot create new components.
-
-All components are: Pre-styled, Deterministic, Prop-restricted
 
 ### 3. Planner Layer (LLM)
 - Route: /api/plan
@@ -204,10 +193,11 @@ Cons:
 - Limited flexibility
 - No arbitrary custom UI components
 
-### Limitations
-- No persistence layer
-- No authentication
-- Desktop-first layout
+### Known Limitations
+- **State resets** on server restart due to in-memory version storage.
+- Limited flexibility with the **fixed component library**: Only predefined components can be used.
+- No **persistent storage** for version history.
+- The AI may not always handle **complex user inputs** as expected (e.g., highly intricate layouts).
 
 ## 🚀 Future Improvements
 - Persistent database storage

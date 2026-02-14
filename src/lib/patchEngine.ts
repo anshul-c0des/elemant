@@ -58,7 +58,7 @@ export function applyPlan(
     }
 
     if (!appliedAny) {
-      console.warn("No actions applied. Tree unchanged.");
+      throw new Error("No matching components found for the requested updates");
     }
 
     return updatedTree;
